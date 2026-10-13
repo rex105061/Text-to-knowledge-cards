@@ -1,0 +1,11 @@
+# Agent 工作数据（不属于本项目，不随仓库发布）
+.workbuddy/
+
+# 操作系统与编辑器产生的垃圾文件
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.idea/
+.vscode/
