@@ -4,6 +4,8 @@
 
 这是一个 WorkBuddy / Claude Skill，**不含任何脚本**，纯提示词驱动，整个能力由 `SKILL.md` 里的规则和工作流定义。
 
+当前版本 **v0.1.0**，版本历史见 [CHANGELOG.md](CHANGELOG.md)。
+
 ---
 
 ## 1. 解决什么问题
@@ -231,6 +233,7 @@ Copy-Item -Recurse skills\make-knowledge-cards "$env:USERPROFILE\.workbuddy\skil
 
 ```
 .
+├── CHANGELOG.md                # 版本历史与各版本功能
 ├── LICENSE
 ├── README.md
 ├── skills/
