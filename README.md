@@ -2,9 +2,9 @@
 
 把一篇文章变成 5–8 张可复习的知识卡片。每张卡片只讲一个知识点。
 
-这是一个 WorkBuddy / Claude Skill，**不含任何脚本**，纯提示词驱动，整个能力由 `SKILL.md` 里的规则和工作流定义。
+这是一个遵循 **Agent Skills** 开放标准的技能（兼容 WorkBuddy、Claude Code、Claude Desktop、Cursor、Codex CLI、GitHub Copilot 等宿主），**不含任何脚本**，纯提示词驱动，整个能力由 `SKILL.md` 里的规则和工作流定义。
 
-当前版本 **v0.1.0**，版本历史见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 **v0.1.1**，版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ---
 
@@ -39,7 +39,7 @@
 | 核心知识 | 这个知识点本身，脱离原文也能读懂 | 一到两句，只讲一件事 |
 | 简明解释 | 为什么成立 / 前提与边界 / 与相邻概念的差别 | 2–4 句，理由必须来自原文 |
 | 例子或自测问题 | 二选一 | 原文有例子则复述例子；没有则出一道**能在原文找到答案**的自测题 |
-| 原文依据 | 逐字引用原文原话作锚点 | 含数字、专有名词或易被过度推广时必加；中文 ≤ 30 字，非中文 ≤ 30 词 |
+| 原文依据 | 逐字引用原文原话作锚点 | 含具体数字、专有名词（专指机构 / 产品 / 标准 / 人物 / 地点 / 文献名，**技术术语不算**）或结论易被过度推广时必加；中文 ≤ 30 字，非中文 ≤ 30 词 |
 
 ### 输出行为
 
@@ -48,6 +48,7 @@
 - **数量不足 5 张时**输出实际数量，并在卡片区前加一行说明原因。
 - **原文是并列清单**（如「N 条建议」）时，会做近义条目去重、按信息增量取舍，并说明合并了几条、保留几张。
 - **原文含矛盾或不可确认信息**（多见于口语转写）时，不据此出卡，统一写进卡片区前的「待核」注。
+- **同一输入重复运行时，卡片数量可能有 ±1 的波动**（同一篇文章，一次出 5 张、另一次出 6 张）。这是模型解码的固有特性，不是规则失效——实测中同一套规则重复跑同一篇原文，得到过 4 张与 5 张两种结果。要完全可复现，需固定模型版本并降低采样温度。
 
 ### 边界处理
 
@@ -75,7 +76,7 @@
 
 1. **不编造**——不补数据、来源、因果、机制、动机、方法论理由、类比。原文写「可能」，卡片就保留「可能」。
 2. **一卡一点**——一张卡片出现「A 和 B」两个主张，就拆开。
-3. **去重**——同一知识点只留一张卡；分类框架不再拆成「有哪几类」加「每类是什么」。
+3. **去重**——同一知识点只留一张卡；分类框架不拆成「有哪几类」加「每类是什么」；「问题→解法」这类因果链的连续两段合并为一张。拆卡的唯一判据：两张卡能各自独立回答一个不同的问题。
 4. **不注水**——5–8 是上限区间，不是配额。
 5. **不溢出**——不输出原文之外的延伸内容、评论、外部知识。
 6. **可答性**——每道自测问题都必须能由原文回答。
@@ -84,24 +85,46 @@
 
 ## 3. 安装方法
 
-把 `skills/make-knowledge-cards/` 整个目录复制到 skills 目录下即可。**无需安装依赖、无需执行任何脚本。**
+本技能遵循 **Agent Skills** 开放标准（`SKILL.md` + YAML frontmatter）。安装只有一个动作：**把 `skills/make-knowledge-cards/` 整个目录复制到宿主的 skills 目录下。** 无需安装依赖、无需执行任何脚本、无需联网。
+
+### 各宿主的安装位置
+
+| 宿主 | 用户级（本机所有项目） | 项目级（随仓库共享） |
+|---|---|---|
+| WorkBuddy | `~/.workbuddy/skills/` | `<项目>/.workbuddy/skills/` |
+| Claude Code | `~/.claude/skills/` | `<项目>/.claude/skills/` |
+| Cursor 2.4+ | `~/.cursor/skills/` | — |
+| Codex CLI | `~/.codex/skills/` | — |
+| GitHub Copilot | — | `<项目>/.github/skills/` |
+| Google Antigravity | — | `<项目>/.agents/skills/` |
+
+其余兼容宿主（均在用户主目录下）：Windsurf `.windsurf/skills/`、OpenCode `.opencode/skills/`、Cline `.cline/skills/`、Roo Code `.roo/skills/`、Goose `.goose/skills/`、Kiro `.kiro/skills/`、Continue `.continue/skills/`、Trae `.trae/skills/`。
+
+**Claude Desktop 与 claude.ai** 不使用文件夹安装：把 `make-knowledge-cards/` 目录打成 `.zip`，在 Settings 的 Skills 里上传。
 
 ```bash
-# 项目级：仅当前项目可用，随仓库共享
-cp -r skills/make-knowledge-cards <你的项目>/.workbuddy/skills/
-
-# 用户级：本机所有项目可用
+# WorkBuddy（用户级）
 cp -r skills/make-knowledge-cards ~/.workbuddy/skills/
+
+# Claude Code（用户级）
+cp -r skills/make-knowledge-cards ~/.claude/skills/
+
+# 项目级（以 WorkBuddy 为例，随仓库共享）
+cp -r skills/make-knowledge-cards <你的项目>/.workbuddy/skills/
 ```
 
 Windows PowerShell：
 
 ```powershell
-# 用户级
 Copy-Item -Recurse skills\make-knowledge-cards "$env:USERPROFILE\.workbuddy\skills\"
 ```
 
-装好后应存在这个结构，缺 `agents/openai.yaml` 会导致入口显示异常但不是必须：
+### 两个注意点
+
+- **格式可移植，安装不可移植。** 每个宿主有各自的 skills 目录与注册表，装在一处不会自动出现在另一处。要在多个宿主使用，每个都要装一次。
+- **不支持 Agent Skills 的宿主**（如 ChatGPT）无法原生加载。可以退而把 `SKILL.md` 的内容作为提示词粘贴使用，但不会被自动触发。
+
+装好后应存在这个结构。缺 `agents/openai.yaml` 只影响 WorkBuddy 的入口显示，不影响功能——该文件是 WorkBuddy 的入口元数据，其它宿主会忽略它：
 
 ```
 <skills 目录>/make-knowledge-cards/
